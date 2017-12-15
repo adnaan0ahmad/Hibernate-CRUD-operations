@@ -1,14 +1,11 @@
 package com.java.CrudOperationsDemo;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 
@@ -23,7 +20,8 @@ public class StudentOperations implements Operations<Student> {
 	public boolean add(Student t) {
 		dataValidator(t);
 		if (get(t.getStudId()) == null) {
-			Session s = HibernateUtil.getSessionFactory().openSession();
+			SessionFactory sf = HibernateUtil.getSessionFactory();
+			Session s = sf.openSession();
 			Transaction transaction = s.beginTransaction();
 			try {
 				s.save(t);
@@ -32,6 +30,7 @@ public class StudentOperations implements Operations<Student> {
 				throw new InvalidDataQueryException("Error while addition of Student Data.");
 			} finally {
 				HibernateUtil.resourceCleanup(s, transaction);
+				//sf.close();
 			}
 			return true;
 		} else
@@ -71,15 +70,18 @@ public class StudentOperations implements Operations<Student> {
 
 	public Student update(Student t) {
 		dataValidator(t);
-		if (get(t.getStudId()) == null)
-			throw new InvalidDataQueryException("No such entry exists in Database.");
+		if (get(t.getStudId()) == null) {
+			
+		}
+			//throw new InvalidDataQueryException("No such entry exists in Database.");
 		Session s = HibernateUtil.getSessionFactory().openSession();
 		Transaction transaction = s.beginTransaction();
 		try {
 			s.update(t);
 		} catch (Exception e) {
 			transaction.rollback();
-			throw new InvalidDataQueryException("Error while updating Student Data.");
+			System.err.println("Error while updating Student Data");
+			//throw new InvalidDataQueryException("");
 		} finally {
 			HibernateUtil.resourceCleanup(s, transaction);
 		}
@@ -102,150 +104,49 @@ public class StudentOperations implements Operations<Student> {
 		return true;
 	}
 
+	
+	
 	@SuppressWarnings("deprecation")
-	public List<Student> searchOnCriteria(Student t, SearchCriteria... criteria) {
+	public List<Student> searchOnCriteria(Student t, SearchCriteria... sc) {
 		dataValidator(t);
-		if (criteria.length <= 0 || criteria.length > 3)
-			throw new InvalidDataQueryException("Invalid number of search parameters passed.");
-
-		for (int i = 0; i < criteria.length - 1; i++) {
-			if (criteria[i].equals(criteria[i + 1]))
-				throw new InvalidDataQueryException("Same search parameters used.");
-		}
+		searchParamValidater(sc);
+		if (SearchCriteria.ALL.equals(sc[0]))
+			return getAll();
 
 		List<Student> l = new ArrayList<Student>();
 		Session s = HibernateUtil.getSessionFactory().openSession();
 		Transaction transaction = s.beginTransaction();
 		Criteria cr = s.createCriteria(Student.class);
 
-		if (criteria.length == 3) {
-			if (criteria[0].equals(criteria[2]))
-				throw new InvalidDataQueryException("Same search parameters used.");
-			else {
+		for (SearchCriteria c : sc) {
+
+			if (c.equals(SearchCriteria.NAME)) {
 				cr.add(Restrictions.eq("studName", t.getStudName()));
-				cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
+			} else if (c.equals(SearchCriteria.ROLLNUMBER)) {
 				cr.add(Restrictions.eq("studRoll", t.getStudRoll()));
-				return cr.list();
-			}
+			} else if (c.equals(SearchCriteria.ADDRESS)) {
+				cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
+			} else
+				throw new InvalidDataQueryException("Invalid search criteria mentioned.");
 		}
-
-		else if (criteria.length == 2) {
-			switch (criteria[0]) {
-			case NAME:
-				switch (criteria[1]) {
-				case ADDRESS:
-					cr.add(Restrictions.eq("studName", t.getStudName()));
-					cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
-					l = cr.list();
-					break;
-
-				case ROLLNUMBER:
-					cr.add(Restrictions.eq("studName", t.getStudName()));
-					cr.add(Restrictions.eq("studRoll", t.getStudRoll()));
-					l = cr.list();
-					break;
-
-				case ALL:
-					throw new InvalidDataQueryException(
-							"Second Search Parameter Invalid. Please enter a different Second criteria");
-
-				default:
-					throw new InvalidDataQueryException("Invalid second search criteria mentioned.");
-				}
-				HibernateUtil.resourceCleanup(s, transaction);
-				break;
-
-			case ADDRESS:
-				switch (criteria[1]) {
-				case NAME:
-					cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
-					cr.add(Restrictions.eq("studName", t.getStudName()));
-					l = cr.list();
-					break;
-
-				case ROLLNUMBER:
-					cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
-					cr.add(Restrictions.eq("studRoll", t.getStudRoll()));
-					l = cr.list();
-					break;
-
-				case ALL:
-					throw new InvalidDataQueryException(
-							"Second Search Parameter Invalid. Please enter a different Second criteria");
-
-				default:
-					throw new InvalidDataQueryException("Invalid second search criteria mentioned.");
-				}
-
-				HibernateUtil.resourceCleanup(s, transaction);
-				break;
-
-			case ROLLNUMBER:
-				switch (criteria[1]) {
-				case NAME:
-					cr.add(Restrictions.eq("studName", t.getStudName()));
-					cr.add(Restrictions.eq("studRoll", t.getStudRoll()));
-					l = cr.list();
-					break;
-
-				case ADDRESS:
-					cr.add(Restrictions.eq("studRoll", t.getStudRoll()));
-					cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
-					l = cr.list();
-					break;
-
-				case ALL:
-					throw new InvalidDataQueryException(
-							"Second Search Parameter Invalid. Please enter a different Second criteria");
-
-				default:
-					throw new InvalidDataQueryException("Invalid second search criteria mentioned.");
-				}
-				HibernateUtil.resourceCleanup(s, transaction);
-				break;
-
-			case ALL:
-				switch (criteria[1]) {
-				case NAME:
-				case ADDRESS:
-				case ROLLNUMBER:
-					throw new InvalidDataQueryException("'ALL' search criteria cannot have a second parameter");
-
-				default:
-					throw new InvalidDataQueryException("Invalid first search criteria mentioned.");
-				}
-			}
-		}
-
-		else {
-			switch (criteria[0]) {
-			case NAME:
-				l = cr.add(Restrictions.eq("studName", t.getStudName())).list();
-				HibernateUtil.resourceCleanup(s, transaction);
-				break;
-
-			case ADDRESS:
-				l = cr.add(Restrictions.eq("studAddress", t.getStudAddress())).list();
-				HibernateUtil.resourceCleanup(s, transaction);
-				break;
-
-			case ROLLNUMBER:
-				l = cr.add(Restrictions.eq("studRoll", t.getStudRoll())).list();
-				HibernateUtil.resourceCleanup(s, transaction);
-				break;
-
-			case ALL:
-				l = getAll();
-				break;
-
-			default:
-				throw new InvalidDataQueryException("Invalid first search criteria mentioned.");
-
-			}
-
-		}
-
+		l = cr.list();
+		HibernateUtil.resourceCleanup(s, transaction);
 		return l;
+	}
+	
+	
+	private void searchParamValidater(SearchCriteria... criteria) {
+
+		if (criteria.length <= 0 || criteria.length > 3)
+			throw new InvalidDataQueryException("Invalid number of search parameters passed.");
+
+		for (int i = 0; i < criteria.length - 1; i++) {
+			for (int j = i + 1; j < criteria.length; j++) {
+				if (criteria[i].equals(criteria[j]))
+					throw new InvalidDataQueryException("Same search parameters used.");
+			}
+		}
+		
 	}
 
 }

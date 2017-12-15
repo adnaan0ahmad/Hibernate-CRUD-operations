@@ -16,7 +16,7 @@
 		<property name="hibernate.connection.username">root</property>
 		<property name="hibernate.connection.password">admin@123</property>
 		
-		<property name="hibernate.hbm2ddl.auto">validate</property> 
+		<property name="hibernate.hbm2ddl.auto">create-drop</property> 
 		
 		<!-- To show the queries fired in SQL DB -->
 		<property name="show_sql">true</property>

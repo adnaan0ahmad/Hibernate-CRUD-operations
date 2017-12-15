@@ -27,7 +27,7 @@ public class Student implements Serializable {
 
 	@Id
 	@Column(name = "SNo")
-	//@GeneratedValue(strategy = GenerationType.AUTO)
+	//@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int studId;
 	
 	@Column(name = "Name")

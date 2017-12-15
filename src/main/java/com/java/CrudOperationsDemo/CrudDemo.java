@@ -23,21 +23,23 @@ public class CrudDemo {
 		/*-----C-----------Creating/Adding Objects to DB----------------*/
 		
 		/*op.add(s1);
-		op.add(s2);op.add(s3);op.add(s4);op.add(s5);op.add(s6);op.add(s7);op.add(s8);op.add(s9);op.add(s10);*/
+		op.add(s2);op.add(s3);op.add(s4);op.add(s5);op.add(s6);op.add(s7);op.add(s8);op.add(s9);op.add(s10);
+		
+		System.out.println("Addition Successful");*/
 		
 		
 		/*-----R-----------Reading Objects from DB----------------*/
 		
 		//System.out.println(op.get(102));
-		/*for(Student s : op.getAll())
-		System.out.println(s);*/
+		for(Student s : op.getAll())
+		System.out.println(s);
 		
 
 		/*-----U-----------Updating Objects in DB----------------*/
 		
-		//s10.setStudName("Horse");
-		//s7.setStudRoll(78);
-		//System.out.println(op.update(s10));
+		//Student s = op.get(10);
+		//System.out.println(op.update(s10));;
+		//System.out.println();
 		
 		/*-----D-----------Deleting Objects in DB----------------*/
 		
@@ -47,7 +49,7 @@ public class CrudDemo {
 		
 		/*-----S-----------Searching Objects in DB----------------*/
 		
-		System.out.println(op.searchOnCriteria(s11, SearchCriteria.ADDRESS, SearchCriteria.NAME));
+		//System.out.println(op.searchOnCriteria(s11, SearchCriteria.ALL));
 		
 		
 	}
