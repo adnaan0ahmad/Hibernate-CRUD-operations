@@ -30,7 +30,7 @@ public class StudentOperations implements Operations<Student> {
 				throw new InvalidDataQueryException("Error while addition of Student Data.");
 			} finally {
 				HibernateUtil.resourceCleanup(s, transaction);
-				//sf.close();
+				// sf.close();
 			}
 			return true;
 		} else
@@ -71,9 +71,9 @@ public class StudentOperations implements Operations<Student> {
 	public Student update(Student t) {
 		dataValidator(t);
 		if (get(t.getStudId()) == null) {
-			
+
 		}
-			//throw new InvalidDataQueryException("No such entry exists in Database.");
+		// throw new InvalidDataQueryException("No such entry exists in Database.");
 		Session s = HibernateUtil.getSessionFactory().openSession();
 		Transaction transaction = s.beginTransaction();
 		try {
@@ -81,7 +81,7 @@ public class StudentOperations implements Operations<Student> {
 		} catch (Exception e) {
 			transaction.rollback();
 			System.err.println("Error while updating Student Data");
-			//throw new InvalidDataQueryException("");
+			// throw new InvalidDataQueryException("");
 		} finally {
 			HibernateUtil.resourceCleanup(s, transaction);
 		}
@@ -104,8 +104,6 @@ public class StudentOperations implements Operations<Student> {
 		return true;
 	}
 
-	
-	
 	@SuppressWarnings("deprecation")
 	public List<Student> searchOnCriteria(Student t, SearchCriteria... sc) {
 		dataValidator(t);
@@ -119,22 +117,25 @@ public class StudentOperations implements Operations<Student> {
 		Criteria cr = s.createCriteria(Student.class);
 
 		for (SearchCriteria c : sc) {
-
-			if (c.equals(SearchCriteria.NAME)) {
+			switch (c) {
+			case NAME:
 				cr.add(Restrictions.eq("studName", t.getStudName()));
-			} else if (c.equals(SearchCriteria.ROLLNUMBER)) {
+				break;
+			case ROLLNUMBER:
 				cr.add(Restrictions.eq("studRoll", t.getStudRoll()));
-			} else if (c.equals(SearchCriteria.ADDRESS)) {
+				break;
+			case ADDRESS:
 				cr.add(Restrictions.eq("studAddress", t.getStudAddress()));
-			} else
+				break;
+			default:
 				throw new InvalidDataQueryException("Invalid search criteria mentioned.");
+			}
 		}
 		l = cr.list();
 		HibernateUtil.resourceCleanup(s, transaction);
 		return l;
 	}
-	
-	
+
 	private void searchParamValidater(SearchCriteria... criteria) {
 
 		if (criteria.length <= 0 || criteria.length > 3)
@@ -146,7 +147,7 @@ public class StudentOperations implements Operations<Student> {
 					throw new InvalidDataQueryException("Same search parameters used.");
 			}
 		}
-		
+
 	}
 
 }
